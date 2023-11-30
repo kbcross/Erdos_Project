@@ -78,7 +78,7 @@ print(soil)
 
 """Sample names in otu table matched to sample names in soil data table
 
-## Kayla Relative Abundance Plot
+## Relative Abundance Plot
 """
 
 import matplotlib.pyplot as plt
@@ -298,124 +298,7 @@ plt.title('NMDS Plot')
 
 plt.show()
 
-
-
-"""## Kim's univariate permanova (ANOVA)- need help not completed"""
-
-#pip install scikit-bio
-!pip install pingouin
-
-#load required packages
-import pandas as pd
-import numpy as np
-from skbio import TabularMSA
-import pingouin as pg
-from statsmodels.stats.multitest import multipletests
-from google.colab import drive
-from skbio.diversity import beta_diversity
-from scipy.stats import f_oneway
-
-# Commented out IPython magic to ensure Python compatibility.
-drive.mount('/content/gdrive/', force_remount=True)
-# %cd gdrive/MyDrive/Erdos_project
-
-#read in and wrangle input files
-
-# Read the metadata file
-soil = pd.read_excel("soil_nutrient_data.xlsx", index_col=0)
-print(soil)
-#read in otu table
-otu = pd.read_csv('filtered_otu_table.csv')
-print(otu)
-otu2 = otu.iloc[:, 1:19]
-otu2.head()
-columns_to_combine = ['Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus']
-
-# Replace NaN with "NA"
-otu2[columns_to_combine] = otu2[columns_to_combine].fillna('NA')
-
-# Combine the specified columns into a single string with underscores
-otu2['Taxa'] = otu2[columns_to_combine].apply(lambda row: '_'.join(row), axis=1)
-
-otu2.head() # the combined column is at the end
-#remove the 'Kingdom', 'Phylum', 'Class', 'Order', 'Family', 'Genus' columns
-otu3 = otu2.iloc[:,6:20]
-#make Taxa column the rownames
-otu3.set_index('Taxa', inplace=True)
-
-# Drop the "Taxa" column
-otu3 = otu3.drop(columns=['Taxa'])
-
-# Now, the "Taxa" column is the row names, and it's removed from the DataFrame
-otu3 = otu3.rename(columns={'SRR21231019': 'OKSW',
-                        'SRR21231020': 'OKPV',
-                        'SRR21231021': 'OKNK',
-                        'SRR21231022': 'OKFC',
-                        'SRR21231023': 'NEPA',
-                        'SRR21231024': 'NENP',
-                        'SRR21231025': 'NELB',
-                        'SRR21231026': 'NECL',
-                        'SRR21231027': 'OKWF',
-                        'SRR21231028': 'OKVI',
-                        'SRR21231029': 'NECA',
-                        'SRR21231030': 'NEBR', })
-otu3_transposed = otu.transpose()
-
-#run anova for eachh variable
-
-all_data = []
-metadata_cols = soil.columns
-
-for meta_id in metadata_cols:
-    metadatai = soil[[metadata_cols[0], meta_id]].dropna()
-    metadatai.columns = ["sample_name", "metadata"]
-
-    samples_w_data = metadatai["sample_name"]
-    metadata_each = metadatai["metadata"]
-
-    # Assuming asv_rare is your OTU data (replace with your actual data)
-    OTU_subset_1 = otu3[samples_w_data]
-
-    # Run PERMANOVA
-    adon = pg.anova(OTU_subset_1, metadata_each)
-
-    pval = adon['p-unc'].values[0]
-    r2 = adon['np2'].values[0]
-
-    all_data.append([meta_id, r2, pval])
-
-all_df = pd.DataFrame(all_data, columns=["metadata", "r2", "pvalue"])
-
-# Correct for multiple comparisons using Benjamini-Hochberg method
-qval = multipletests(all_df["pvalue"], method="fdr_bh")[1]
-
-all_df["qval"] = qval
-
-all_df.to_csv("Permanova_results_all_rare.csv", index=False)
-
-# Assuming 'otu_table' is your OTU table DataFrame, and 'metadata' is your metadata DataFrame
-# Assuming 'metadata_column' is the column in 'metadata' for which you want to perform ANOVA
-
-# Calculate Bray-Curtis distances
-bc_dm = beta_diversity("braycurtis", otu3_transposed.values, otu3_transposed.index)
-
-# Perform ANOVA for each metadata variable
-metadata_cols = soil.columns
-
-results = []
-
-for meta_var in metadata_cols:
-    groups = [soil[meta_var][otu3_transposed.index == sample] for sample in otu3_transposed.index]
-    f_statistic, p_value = f_oneway(*groups)
-    results.append([meta_var, p_value, f_statistic])
-
-# Create a DataFrame from the results
-result_df = pd.DataFrame(results, columns=["Metadata_Variable", "P-Value", "F-Statistic"])
-
-# Save the results to a CSV file
-result_df.to_csv("bray_anova_results.csv", index=False)
-
-"""# Kim - Correlation matrix"""
+## Correlation Matrix
 
 import seaborn as sns
 
@@ -461,23 +344,3 @@ plt.yticks(fontsize=12)
 
 # Show the plot
 plt.show()
-
-"""Stephanie - Alpha diversity"""
-
-import pandas as pd
-import numpy as np
-#!pip install ecopy
-#from scipy.special import comb
-#from ecopy import diversity
-#ecopy does not work due to comb issue
-#!pip install scikit-bio
-from skbio.diversity import alpha_diversity
-from skbio.diversity import alpha
-
-a_otu = otu2.iloc[:,6:18]
-data = a_otu.transpose()
-ids = list(a_otu.columns)
-adiv_obs_otus = alpha_diversity('observed_otus', data, ids)
-adiv_obs_otus
-shannon(adiv_obs_otus, base=2)
-#i cannot figure out why the shannon function is not working!
