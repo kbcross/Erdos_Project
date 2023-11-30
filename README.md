@@ -12,4 +12,12 @@ Description of Files
 
 "soil_nutrient_data.xlsx" This is all the soil nutrient data.
 
-"Soybean_otu_taxonomy.xlsx" This is the otus labeled
+"Soybean_otu_taxonomy.xlsx" This is the otus table. This will open up unformatted in excel, but if you upload into python as a csv then you will be able to view and use the file. 
+
+
+
+"1_data_clean_up_(done).py" This python script includes everything that the group did to generate "filtered_otu_table.csv".
+
+"2_data_exploratory_analysis.py" This python script includes various exploratory analysis such as a relative abundance plot, NMDS plot, and correlation matrix.
+
+"3_supervise_ml.py" This python script includes all the supervised machine learning that the group completed, including K nearest neighbor regression, linear regression, random forest regression, support vector regression, and feature importance using feature importance. We also repeated this analysis with and without the microbiome data. 
